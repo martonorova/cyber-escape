@@ -14,7 +14,8 @@ import fileIcon from '../logo.svg';
 import terminalIcon from '../logo.svg';
 import riddleIcon from '../logo.svg';
 
-import './Desktop.css'; // Tartsd meg az egyedi Desktop stílusokat (háttér stb.)
+// import './Desktop.css'; // Tartsd meg az egyedi Desktop stílusokat (háttér stb.)
+import styles from './Desktop.module.scss';
 
 function Desktop() {
   const realIconsData = [
@@ -37,8 +38,8 @@ function Desktop() {
     // További ikonok hozzáadhatók itt
   ];
 
-  const numberOfIcons = 8;
-  const iconsPerRow = 4; // Állítsd be, hogy hány ikon legyen egy sorban
+  const numberOfIcons = 4;
+  const iconsPerRow = 2; // Állítsd be, hogy hány ikon legyen egy sorban
 
   // const [icons, setIcons] = useState(initialIcons.map(icon => ({ ...icon, isBlocked: false })));
   const [icons, setIcons] = useState(generateScatteredIcons(realIconsData, numberOfIcons));
@@ -46,35 +47,35 @@ function Desktop() {
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [isRiddle1Open, setIsRiddle1Open] = useState(false);
 
-  
 
-  useEffect(() => {
-    const blockInterval = setInterval(() => {
-      // rearrange icons
-      // setIcons(shuffle(icons))
 
-      setIcons(prevIcons => {
-        return shuffle(prevIcons)
-      })
+  // useEffect(() => {
+  //   const blockInterval = setInterval(() => {
+  //     // rearrange icons
+  //     // setIcons(shuffle(icons))
 
-    }, 5000);
+  //     setIcons(prevIcons => {
+  //       return shuffle(prevIcons)
+  //     })
 
-    return () => clearInterval(blockInterval);
-  }, []);
+  //   }, 5000);
 
-  useEffect(() => {
-    const blockInterval = setInterval(() => {
-      // block icons randomly
-      setIcons((prevIcons) =>
-        prevIcons.map((icon) => ({
-          ...icon,
-          isBlocked: Math.random() < 0.3,
-        }))
-      );
-    }, 7000);
+  //   return () => clearInterval(blockInterval);
+  // }, []);
 
-    return () => clearInterval(blockInterval);
-  }, []);
+  // useEffect(() => {
+  //   const blockInterval = setInterval(() => {
+  //     // block icons randomly
+  //     setIcons((prevIcons) =>
+  //       prevIcons.map((icon) => ({
+  //         ...icon,
+  //         isBlocked: Math.random() < 0.3,
+  //       }))
+  //     );
+  //   }, 7000);
+
+  //   return () => clearInterval(blockInterval);
+  // }, []);
 
   const handleIconClick = (iconName) => {
     if (iconName === 'Files') setIsFileExplorerOpen(true);
@@ -92,7 +93,7 @@ function Desktop() {
       isBlocked: false,
       isDummy: true,
     }));
-  
+
     const allIcons = [...realIconsWithData, ...dummyIcons];
     const shuffledIcons = shuffle(allIcons);
     return shuffledIcons;
@@ -122,9 +123,17 @@ function Desktop() {
     return rows;
   };
 
+  const [terminalInput, setTerminalInput] = useState(''); // State a terminál beviteli mezőhöz
+
+  const handleTerminalInputChange = (event) => {
+    setTerminalInput(event.target.value);
+  };
+
   return (
     <div className="desktop"> {/* Egyszerű div a háttérhez stb. */}
-      <ScreenVibration />
+      <ScreenVibration>
+      </ScreenVibration>
+
       <KeyboardScramble />
       <Container fluid className="mt-3"> {/* Container a margóhoz felül */}
         {renderIconsInGrid()}
@@ -149,12 +158,23 @@ function Desktop() {
           <Modal.Title>Terminal</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Simulated terminal interface here. Type 'help' for commands.</p>
-          {/* Itt lesz a terminál bemenete/kimenete */}
+          <div className={styles.terminalContainer}> {/* Opcionális konténer a további stílushoz */}
+            <label className={styles.terminalPrompt}>user@virtual:~$ </label>
+            <textarea
+              className={styles.terminalInput}
+              value={terminalInput}
+              onChange={handleTerminalInputChange}
+              rows={5} // Állítsd be a kívánt sorok számát
+            />
+          </div>
+          {/* Itt jelenítheted meg a terminál kimenetét */}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setIsTerminalOpen(false)}>
             Close
+          </Button>
+          <Button variant="primary" onClick={() => console.log('Command submitted:', terminalInput)}>
+            Submit
           </Button>
         </Modal.Footer>
       </Modal>

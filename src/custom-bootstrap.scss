@@ -2,6 +2,12 @@
 // @import '~bootstrap/scss/bootstrap-functions';
 @import '../node_modules/bootstrap/scss/functions';
 
+// Define your custom colors
+$military-green: #556B2F;
+$military-khaki: #F0E68C;
+$military-dark-gray: #708090;
+$military-light-beige: #FAF0E6;
+
 // Define your custom theme variables
 $primary:    #4CAF50;  // A military green
 $secondary:  #607D8B;  // A gunmetal gray
@@ -78,7 +84,7 @@ $btn-primary-color:     $dark;
 }
 
 .shake {
-  animation: shake 0.1s infinite alternate;
+  animation: shake 2.1s infinite alternate;
 }
 
 @keyframes shake {

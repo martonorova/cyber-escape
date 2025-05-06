@@ -1,7 +1,8 @@
 import React from 'react';
 import { Card, Col } from 'react-bootstrap';
 
-import './Icon.css'
+// import './Icon.css'
+import styles from './Icon.module.scss'; 
 
 function Icon({ name, style, className, onClick, icon, isBlocked, isDummy }) {
   const handleClick = (event) => {
@@ -11,13 +12,13 @@ function Icon({ name, style, className, onClick, icon, isBlocked, isDummy }) {
   };
 
   if (isDummy) {
-    return <Col style={{ width: '75px', height: '75px' }} />; // Foglaljon helyet, de ne jelenítsen meg semmit
+    return <Col style={{ width: '100px', height: '100px' }} />; // Foglaljon helyet, de ne jelenítsen meg semmit
   }
 
   return (
     <Card
-      className={`desktop-icon ${className}`}
-      style={{ ...style, width: '75px', height: '75px' }} // Fix méretek a kártyához
+      className={`${styles.card} desktop-icon ${className}`}
+      style={{ ...style, width: '100px', height: '100px' }} // Fix méretek a kártyához
       onClick={handleClick}
     >
       {icon && (

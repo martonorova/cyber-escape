@@ -1,0 +1,27 @@
+/* src/components/Desktop.module.scss */
+.terminalContainer {
+    background-color: #000;
+    color: #00FF00;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 1em;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .terminalPrompt {
+    margin-right: 10px;
+    white-space: nowrap;
+  }
+  
+  .terminalInput {
+    background-color: transparent;
+    color: inherit;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: inherit;
+    flex-grow: 1;
+    resize: vertical;
+  }

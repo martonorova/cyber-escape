@@ -1,0 +1,58 @@
+@import '../custom-bootstrap.scss';
+
+.card {
+  cursor: pointer;
+  transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+  background-color: $military-green;
+  color: $military-light-beige;
+  display: flex; /* Hogy a belső elemeket rendezni tudjuk */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%; /* Hogy a kártya kitöltse a Col-t */
+  height: 100%; /* Hogy a kártya kitöltse a Col-t */
+  padding: 0.5rem; /* Kis padding */
+  box-sizing: border-box; /* A padding és border ne növelje a méretet */
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &.blocked { /* A .blocked osztály a .card-ra vonatkozik */
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+    transform: scale(1);
+    box-shadow: none;
+  }
+
+  .card-img-top {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 2px; /* Kicsit igazítjuk a margót */
+  }
+
+  .card-body {
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem; /* Padding a szöveg körül */
+  }
+
+  .card-title {
+    font-size: 0.8em;
+    margin-bottom: 0;
+    text-align: center;
+    color: inherit;
+    word-break: break-word;
+  }
+}
