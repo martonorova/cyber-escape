@@ -4,10 +4,12 @@ import { shuffle } from 'lodash'
 
 import Taskbar from './Taskbar';
 import Icon from './Icon';
-import { Modal, Button, Container, Row, Col } from 'react-bootstrap';
+import { Modal, Button, Container, Row, Col, Form } from 'react-bootstrap';
 import fileIcon from '../logo.svg';
 import dragonIcon from '../assets/dragon.png';
 // import dragonIcon from '../assets/dragon2.jpeg';
+
+import { ExclamationTriangleFill } from 'react-bootstrap-icons';
 
 import styles from './Desktop.module.scss';
 
@@ -107,6 +109,11 @@ function Desktop() {
   const [currentPatternType, setCurrentPatternType] = useState('random'); // 'number' vagy 'random'
   const [currentNumberKeyIndex, setCurrentNumberKeyIndex] = useState(0); // A számminta tömbjének indexe
 
+  // ÚJ állapot a megoldás ablakhoz
+  const [isSolutionModalOpen, setIsSolutionModalOpen] = useState(false);
+  const [solutionInputs, setSolutionInputs] = useState(Array(5).fill('')); // 5 üres string a bemeneteknek
+  const [solutionMessage, setSolutionMessage] = useState(''); // Üzenet a megfejtéshez
+
   // Kezdeti elrendezés beállítása (az első statikus véletlenszerű elrendezés)
   useEffect(() => {
     setCurrentLayoutMatrix(staticRandomLayouts[0]);
@@ -118,7 +125,7 @@ function Desktop() {
 
       // Döntés véletlenszerűen, melyik tömböt használjuk
       // Pl. 50% esély a számmintákra, 50% esély a random mintákra
-      const useNumberPattern = Math.random() < 1.8;
+      const useNumberPattern = Math.random() < 0.5;
 
       if (useNumberPattern) {
         // Válasszunk a számminták közül
@@ -144,6 +151,35 @@ function Desktop() {
 
   const handleIconClick = () => { // Nincs már iconName prop, mert mind File
     setIsAccessDeniedOpen(true);
+  };
+
+   // ÚJ: Megoldás gomb kattintásának kezelése
+   const handleSolutionButtonClick = () => {
+    setIsSolutionModalOpen(true); // Megnyitja a megoldás ablakot
+    setSolutionInputs(Array(5).fill('')); // Törli a korábbi bemeneteket
+    setSolutionMessage(''); // Törli az üzenetet
+  };
+
+  // ÚJ: Megoldás input változásának kezelése
+  const handleSolutionInputChange = (index, value) => {
+    // Csak számot fogad el és csak egy karaktert
+    if (value === '' || /^[0-9]$/.test(value)) {
+      const newInputs = [...solutionInputs];
+      newInputs[index] = value;
+      setSolutionInputs(newInputs);
+    }
+  };
+
+  // ÚJ: Megoldás ellenőrzése
+  const checkSolution = () => {
+    const correctSolution = '85397'; // A helyes megfejtés (az 5x5-ös minták sorrendje)
+    const enteredSolution = solutionInputs.join(''); // A felhasználó által beírt szám
+
+    if (enteredSolution === correctSolution) {
+      setSolutionMessage('Letöltés megszakítva!');
+    } else {
+      setSolutionMessage('Hibás kód.');
+    }
   };
 
   const renderIconsInGrid = () => {
@@ -190,30 +226,6 @@ function Desktop() {
   const renderAdditionalRow = () => {
     const iconsInRow = [];
     const numberOfCols = 5; // 5 oszlop
-    // Mivel 12 Bootstrap oszlop van, és 5 oszlopot akarunk,
-    // 12 / 5 = 2.4. Ezért 2-es Col méretekkel nem lesz tökéletesen elosztva.
-    // Helyette használhatunk xs={2} és justified-content-center-t, vagy xs={2} és xs={auto} kombinációt,
-    // de a legegyszerűbb, ha xs={auto} és a Col-ok száma 5.
-    // VAGY, ha fix méretű ikonjaink vannak (75px), akkor manuálisan kell elosztani 850px-en.
-    // A 850px / 5 = 170px hely oszloponként, beleértve a guttert.
-    // Ha az ikon 75px, akkor 170-75 = 95px marad a paddingra és a gutterre.
-
-    // A legegyszerűbb, ha ragaszkodunk a Bootstrap Col-hoz, és hagyjuk, hogy elossza.
-    // Használjunk xs={2} vagy xs={auto} és justifiy-content-around/between/center.
-    // Maradjunk az xs={2}-nél, de az utolsó Col-t (vagy az elsőt) eltolhatjuk.
-    // Vagy egyszerűen xs={auto} minden Col-nak, ami elosztja a rendelkezésre álló helyet.
-
-    // A 850px szélesség 12 oszlopra van felosztva,
-    // egy 6x6-os rácsban minden Col xs={2} szélességű.
-    // 5 ikon a 850px-en belül. 850 / 5 = 170px / ikon + gutter.
-    // Mivel az ikon 75px, 170 - 75 = 95px a keret.
-
-    // A legtisztább, ha a Col xs értékét úgy választjuk meg, hogy 5 oszlop jöjjön ki:
-    // 12 / 5 = 2.4. Nincs tökéletes Bootstrap xs érték.
-    // Használjuk a justify-content-between/around-ot, és adjunk Col xs={2} vagy xs={auto}-t.
-    // `xs={2}` esetén 6 oszlop van, de csak 5-öt használunk. A maradék helyet a justify-content-center osztja el.
-    // A `Col` `xs={2}` ad kb. 16.66% szélességet. 5 * 16.66% = 83.3%.
-    // Ez azt jelenti, hogy lesz 16.7% üres hely, amit a `justify-content-center` szépen eloszt.
 
     for (let i = 0; i < numberOfCols; i++) {
 
@@ -256,10 +268,11 @@ function Desktop() {
 
   return (
     <div className={styles.desktop}>
+      <Taskbar onSolutionButtonClick={handleSolutionButtonClick} />
       {/* <Container fluid className="mt-3"> */}
       <Container
         // fluid prop eltávolítva
-        className="mt-1 d-flex flex-column justify-content-center align-items-center" // Flexbox a tartalom középre igazításához
+        className="mt-3 d-flex flex-column justify-content-center align-items-center" // Flexbox a tartalom középre igazításához
         style={{
           minHeight: 'calc(100vh - 50px)', // A taskbar magasságát levonjuk
           maxWidth: '850px', // Max szélesség beállítása
@@ -275,19 +288,44 @@ function Desktop() {
       {/* Access Denied Modal */}
       <Modal show={isAccessDeniedOpen} onHide={() => setIsAccessDeniedOpen(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Error</Modal.Title>
+          <Modal.Title> <ExclamationTriangleFill /> HIBA!</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p className={styles.errorText}>Access Denied</p>
+          
+          <p className={styles.errorText}>Hozzáférés megtagadva!</p>
+          <p className={styles.errorText}>A fájl felülvizsgálat alatt.</p>
+        </Modal.Body>
+      </Modal>
+
+      <Modal show={isSolutionModalOpen} onHide={() => setIsSolutionModalOpen(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Adja meg a jelszót!</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form className="d-flex justify-content-around mb-3">
+            {solutionInputs.map((digit, index) => (
+              <Form.Control
+                key={index}
+                type="text" // text típus, hogy egyelőre ne jöjjön fel a numerikus billentyűzet mobilokon
+                maxLength="1" // Csak egy karaktert engedélyez
+                value={digit}
+                onChange={(e) => handleSolutionInputChange(index, e.target.value)}
+                className="text-center mx-1" // Középre igazítja a szöveget és ad egy kis margót
+                style={{ width: '50px', height: '50px', fontSize: '2rem' }} // Nagyobb méret és betűméret
+              />
+            ))}
+          </Form>
+          {solutionMessage && <p className="text-center mt-3">{solutionMessage}</p>} {/* Megjeleníti az üzenetet */}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setIsAccessDeniedOpen(false)}>
-            Close
+          <Button variant="secondary" onClick={() => setIsSolutionModalOpen(false)}>
+            Mégse
+          </Button>
+          <Button variant="primary" onClick={checkSolution}>
+            OK
           </Button>
         </Modal.Footer>
       </Modal>
-
-      <Taskbar />
     </div>
   );
 }
