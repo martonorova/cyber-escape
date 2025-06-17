@@ -25,13 +25,13 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
-  &.blocked { /* A .blocked osztály a .card-ra vonatkozik */
-    opacity: 0.5;
-    pointer-events: none;
-    cursor: not-allowed;
-    transform: scale(1);
-    box-shadow: none;
-  }
+  // &.blocked { /* A .blocked osztály a .card-ra vonatkozik */
+  //   opacity: 0.5;
+  //   pointer-events: none;
+  //   cursor: not-allowed;
+  //   transform: scale(1);
+  //   box-shadow: none;
+  // }
 
   .card-img-top {
     width: 48px;

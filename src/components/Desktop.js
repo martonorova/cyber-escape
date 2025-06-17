@@ -4,191 +4,196 @@ import { shuffle } from 'lodash'
 
 import Taskbar from './Taskbar';
 import Icon from './Icon';
-import ScreenVibration from './ScreenVibration';
-import KeyboardScramble from './KeyboardScramble';
 import { Modal, Button, Container, Row, Col } from 'react-bootstrap';
-// import fileIcon from './assets/file-icon.png';
-// import terminalIcon from './assets/terminal-icon.png';
-// import riddleIcon from './assets/riddle-icon.png';
 import fileIcon from '../logo.svg';
-import terminalIcon from '../logo.svg';
-import riddleIcon from '../logo.svg';
 
-// import './Desktop.css'; // Tartsd meg az egyedi Desktop stílusokat (háttér stb.)
 import styles from './Desktop.module.scss';
 
-function Desktop() {
-  const realIconsData = [
-    // IDs must be unique
-    { id: 'files', name: 'Files', icon: fileIcon },
-    { id: 'terminal', name: 'Terminal', icon: terminalIcon },
-    { id: 'riddle1', name: 'Secret Note', icon: riddleIcon },
-    { id: 'files2', name: 'Files', icon: fileIcon },
-    // { id: 'terminal', name: 'Terminal', icon: terminalIcon },
-    // { id: 'riddle1', name: 'Secret Note', icon: riddleIcon },
-    // { id: 'files', name: 'Files', icon: fileIcon },
-    // { id: 'terminal', name: 'Terminal', icon: terminalIcon },
-    // { id: 'riddle1', name: 'Secret Note', icon: riddleIcon },
-    // { id: 'files', name: 'Files', icon: fileIcon },
-    // { id: 'terminal', name: 'Terminal', icon: terminalIcon },
-    // { id: 'riddle1', name: 'Secret Note', icon: riddleIcon },
-    // { id: 'files', name: 'Files', icon: fileIcon },
-    // { id: 'terminal', name: 'Terminal', icon: terminalIcon },
-    // { id: 'riddle1', name: 'Secret Note', icon: riddleIcon },
-    // További ikonok hozzáadhatók itt
-  ];
+// Segédfüggvény egy üres 6x6-os boolean mátrix létrehozásához
+const createEmptyGrid = () => Array(6).fill(null).map(() => Array(6).fill(false));
 
-  const numberOfIcons = 4;
-  const iconsPerRow = 2; // Állítsd be, hogy hány ikon legyen egy sorban
+// Statikus 6x6-os boolean mátrixok a számokhoz
+const numberPatterns = {
+  '8': [
+    [false, true, true, true, false, false],
+    [false, true, false, true, false, false],
+    [false, true, true, true, false, false],
+    [false, true, false, true, false, false],
+    [false, true, true, true, false, false],
+    [false, false, false, false, false, false],
+  ],
+  '5': [
+    [false, true, true, true, false, false],
+    [false, true, false, false, false, false],
+    [false, true, true, true, false, false],
+    [false, false, false, true, false, false],
+    [false, true, true, true, false, false],
+    [false, false, false, false, false, false],
+  ],
+  '3': [
+    [false, true, true, true, false, false],
+    [false, false, false, true, false, false],
+    [false, true, true, true, false, false],
+    [false, false, false, true, false, false],
+    [false, true, true, true, false, false],
+    [false, false, false, false, false, false],
+  ],
+  '9': [
+    [false, true, true, true, false, false],
+    [false, true, false, true, false, false],
+    [false, true, true, true, false, false],
+    [false, false, false, true, false, false],
+    [false, true, true, true, false, false],
+    [false, false, false, false, false, false],
+  ],
+  '7': [
+    [false, true, true, true, false, false],
+    [false, false, false, true, false, false],
+    [false, false, false, true, false, false],
+    [false, false, false, true, false, false],
+    [false, false, false, true, false, false],
+    [false, false, false, false, false, false],
+  ],
+};
 
-  // const [icons, setIcons] = useState(initialIcons.map(icon => ({ ...icon, isBlocked: false })));
-  const [icons, setIcons] = useState(generateScatteredIcons(realIconsData, numberOfIcons));
-  const [isFileExplorerOpen, setIsFileExplorerOpen] = useState(false);
-  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
-  const [isRiddle1Open, setIsRiddle1Open] = useState(false);
+// Segédfüggvény statikus véletlenszerű elrendezés generálásához
+const generateStaticRandomLayout = (numIcons, totalCells) => {
+  const grid = createEmptyGrid();
+  const flatGrid = Array(totalCells).fill(false); // Lapos tömb a könnyebb kezeléshez
 
-
-
-  // useEffect(() => {
-  //   const blockInterval = setInterval(() => {
-  //     // rearrange icons
-  //     // setIcons(shuffle(icons))
-
-  //     setIcons(prevIcons => {
-  //       return shuffle(prevIcons)
-  //     })
-
-  //   }, 5000);
-
-  //   return () => clearInterval(blockInterval);
-  // }, []);
-
-  // useEffect(() => {
-  //   const blockInterval = setInterval(() => {
-  //     // block icons randomly
-  //     setIcons((prevIcons) =>
-  //       prevIcons.map((icon) => ({
-  //         ...icon,
-  //         isBlocked: Math.random() < 0.3,
-  //       }))
-  //     );
-  //   }, 7000);
-
-  //   return () => clearInterval(blockInterval);
-  // }, []);
-
-  const handleIconClick = (iconName) => {
-    if (iconName === 'Files') setIsFileExplorerOpen(true);
-    if (iconName === 'Terminal') setIsTerminalOpen(true);
-    if (iconName === 'Secret Note') setIsRiddle1Open(true);
-  };
-
-  function generateScatteredIcons(realIcons, totalIcons) {
-    // const scatteredIcons = [];
-    const realIconsWithData = realIcons.map(icon => ({ ...icon, isBlocked: false, isDummy: false }));
-    const dummyIcons = Array.from({ length: totalIcons - realIcons.length }, (_, i) => ({
-      id: `dummy-${Math.random()}`, // Fontos: egyedi ID minden dummy ikonhoz az átrendezéskor
-      name: '',
-      icon: null,
-      isBlocked: false,
-      isDummy: true,
-    }));
-
-    const allIcons = [...realIconsWithData, ...dummyIcons];
-    const shuffledIcons = shuffle(allIcons);
-    return shuffledIcons;
+  const positions = shuffle(Array.from({ length: totalCells }, (_, i) => i)); // Összes pozíció
+  for (let i = 0; i < numIcons; i++) {
+    flatGrid[positions[i]] = true; // Jelöljük az ikont rejtő pozíciókat
   }
+
+  // Alakítsuk vissza 6x6-os mátrixá
+  let current = 0;
+  for (let r = 0; r < 6; r++) {
+    for (let c = 0; c < 6; c++) {
+      grid[r][c] = flatGrid[current++];
+    }
+  }
+  return grid;
+};
+
+// 10 statikus, random elrendezés előre generálva
+const staticRandomLayouts = Array.from({ length: 10 }, () =>
+  generateStaticRandomLayout(13, 36)
+);
+
+
+function Desktop() {
+
+  const gridSize = 6;
+
+  const [currentLayoutMatrix, setCurrentLayoutMatrix] = useState([]); // A jelenlegi 6x6-os boolean mátrix
+  const [isAccessDeniedOpen, setIsAccessDeniedOpen] = useState(false);
+  const [patternIndex, setPatternIndex] = useState(0); // Index a számminták között
+  const [randomLayoutIndex, setRandomLayoutIndex] = useState(0); // Index a random elrendezések között
+
+  // Kezdeti elrendezés beállítása (az első statikus véletlenszerű elrendezés)
+  useEffect(() => {
+    setCurrentLayoutMatrix(staticRandomLayouts[0]);
+  }, []);
+
+  // Layout váltás időzítő
+  useEffect(() => {
+    const layoutInterval = setInterval(() => {
+
+      // Döntés véletlenszerűen, melyik tömböt használjuk
+      // Pl. 50% esély a számmintákra, 50% esély a random mintákra
+      const useNumberPattern = Math.random() < 0.3;
+
+      if (useNumberPattern) {
+        // Válasszunk a számminták közül
+        const numberKeys = Object.keys(numberPatterns);
+        const nextIndex = (patternIndex + 1) % numberKeys.length;
+        setPatternIndex(nextIndex);
+        setCurrentLayoutMatrix(numberPatterns[numberKeys[nextIndex]]);
+      } else {
+        // Válasszunk a random elrendezések közül
+        const nextIndex = (randomLayoutIndex + 1) % staticRandomLayouts.length;
+        setRandomLayoutIndex(nextIndex);
+        setCurrentLayoutMatrix(staticRandomLayouts[nextIndex]);
+      }
+    }, 5000); // 5 másodpercenként vált
+
+    return () => clearInterval(layoutInterval);
+  }, [patternIndex, randomLayoutIndex]); // Függőségek frissítve
+
+  const handleIconClick = () => { // Nincs már iconName prop, mert mind File
+    setIsAccessDeniedOpen(true);
+  };
 
   const renderIconsInGrid = () => {
     const rows = [];
-    for (let i = 0; i < icons.length; i += iconsPerRow) {
-      const iconsInRow = icons.slice(i, i + iconsPerRow);
-      rows.push(
-        <Row key={i} className="gx-3 gy-5 no-row-margin-top"> {/* gx- a vízszintes, gy- a függőleges távolság */}
-          {iconsInRow.map((icon, index) => (
-            <Col key={icon.id} xs={12 / iconsPerRow} className="d-flex justify-content-center">
+    for (let r = 0; r < gridSize; r++) {
+      const colsInRow = [];
+      for (let c = 0; c < gridSize; c++) {
+        const hasIcon = currentLayoutMatrix[r] && currentLayoutMatrix[r][c]; // Ellenőrizzük, hogy van-e ikon
+        const uniqueKey = `icon-${r}-${c}`; // Egyedi kulcs minden Col-hoz
+
+        colsInRow.push(
+          <Col key={uniqueKey} xs={2} className="d-flex justify-content-center">
+            {hasIcon ? ( // Ha van ikon (true a mátrixban)
               <Icon
-                name={icon.name}
-                icon={icon.icon}
-                isBlocked={icon.isBlocked}
-                isDummy={icon.isDummy}
-                className={`${icon.isBlocked ? 'blocked' : ''} ${icon.isDummy ? 'dummy-icon' : ''}`}
-                onClick={icon.isDummy ? undefined : () => handleIconClick(icon.name)}
+                name="File" // Mindig "File"
+                icon={fileIcon}
+                isDummy={false} // Nem dummy, mert látható File ikon
+                onClick={handleIconClick}
+                className=""
               />
-            </Col>
-          ))}
+            ) : ( // Ha nincs ikon (false a mátrixban)
+              <Icon
+                name=""
+                icon={null} // Nincs kép
+                isDummy={true} // Dummy ikon (helyfoglaló)
+                onClick={undefined}
+                className="dummy-icon" // Adhatunk neki egy osztályt a stílusozáshoz
+              />
+            )}
+          </Col>
+        );
+      }
+      rows.push(
+        <Row key={r} className={`gx-3 gy-5 no-row-margin-top`}>
+        {/* // <Row key={r} className={`justify-content-center ${styles.iconRow}`}> */}
+          {colsInRow}
         </Row>
       );
     }
     return rows;
   };
 
-  const [terminalInput, setTerminalInput] = useState(''); // State a terminál beviteli mezőhöz
 
-  const handleTerminalInputChange = (event) => {
-    setTerminalInput(event.target.value);
-  };
 
   return (
-    <div className="desktop"> {/* Egyszerű div a háttérhez stb. */}
-      <ScreenVibration>
-      </ScreenVibration>
-
-      <KeyboardScramble />
-      <Container fluid className="mt-3"> {/* Container a margóhoz felül */}
+    <div className={styles.desktop}>
+      {/* <Container fluid className="mt-3"> */}
+      <Container
+        // fluid prop eltávolítva
+        className="d-flex flex-column justify-content-center align-items-center" // Flexbox a tartalom középre igazításához
+        style={{
+          minHeight: 'calc(100vh - 50px)', // A taskbar magasságát levonjuk
+          maxWidth: '850px', // Max szélesség beállítása
+          width: '100%', // Kisebb képernyőn alkalmazkodik, max 850px
+          padding: '0', // Eltávolítja a Bootstrap alapértelmezett paddingját
+          margin: '0 auto' // Középre igazítja a konténert a szülő elemen belül
+        }}
+      >
         {renderIconsInGrid()}
       </Container>
 
-      <Modal show={isFileExplorerOpen} onHide={() => setIsFileExplorerOpen(false)}>
+      {/* Access Denied Modal */}
+      <Modal show={isAccessDeniedOpen} onHide={() => setIsAccessDeniedOpen(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>File Explorer</Modal.Title>
+          <Modal.Title>Error</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Simulated file listings will go here.</p>
+          <p className={styles.errorText}>Access Denied</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setIsFileExplorerOpen(false)}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      <Modal show={isTerminalOpen} onHide={() => setIsTerminalOpen(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Terminal</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className={styles.terminalContainer}> {/* Opcionális konténer a további stílushoz */}
-            <label className={styles.terminalPrompt}>user@virtual:~$ </label>
-            <textarea
-              className={styles.terminalInput}
-              value={terminalInput}
-              onChange={handleTerminalInputChange}
-              rows={5} // Állítsd be a kívánt sorok számát
-            />
-          </div>
-          {/* Itt jelenítheted meg a terminál kimenetét */}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setIsTerminalOpen(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={() => console.log('Command submitted:', terminalInput)}>
-            Submit
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      <Modal show={isRiddle1Open} onHide={() => setIsRiddle1Open(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Secret Note</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>This is a secret note with a riddle!</p>
-          {/* Itt lesz az első rejtvény */}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setIsRiddle1Open(false)}>
+          <Button variant="secondary" onClick={() => setIsAccessDeniedOpen(false)}>
             Close
           </Button>
         </Modal.Footer>

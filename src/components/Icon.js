@@ -1,12 +1,11 @@
 import React from 'react';
 import { Card, Col } from 'react-bootstrap';
 
-// import './Icon.css'
 import styles from './Icon.module.scss'; 
 
-function Icon({ name, style, className, onClick, icon, isBlocked, isDummy }) {
+function Icon({ name, style, className, onClick, icon, isDummy }) {
   const handleClick = (event) => {
-    if (!isBlocked && onClick) {
+    if (onClick && !isDummy) {
       onClick(event);
     }
   };
