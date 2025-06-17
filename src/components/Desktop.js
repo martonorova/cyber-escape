@@ -14,47 +14,42 @@ import styles from './Desktop.module.scss';
 // Segédfüggvény egy üres 6x6-os boolean mátrix létrehozásához
 const createEmptyGrid = () => Array(6).fill(null).map(() => Array(6).fill(false));
 
-// Statikus 6x6-os boolean mátrixok a számokhoz
+// Statikus 5x5-ös boolean mátrixok a számokhoz (ÚJ DEFINÍCIÓ)
 const numberPatterns = {
   '8': [
-    [false, true, true, true, false, false],
-    [false, true, false, true, false, false],
-    [false, true, true, true, false, false],
-    [false, true, false, true, false, false],
-    [false, true, true, true, false, false],
-    [false, false, false, false, false, false],
+    [false, true, true, true, false],
+    [false, true, false, true, false],
+    [false, true, true, true, false],
+    [false, true, false, true, false],
+    [false, true, true, true, false],
   ],
   '5': [
-    [false, true, true, true, false, false],
-    [false, true, false, false, false, false],
-    [false, true, true, true, false, false],
-    [false, false, false, true, false, false],
-    [false, true, true, true, false, false],
-    [false, false, false, false, false, false],
+    [false, true, true, true, false],
+    [false, true, false, false, false],
+    [false, true, true, true, false],
+    [false, false, false, true, false],
+    [false, true, true, true, false],
   ],
   '3': [
-    [false, true, true, true, false, false],
-    [false, false, false, true, false, false],
-    [false, true, true, true, false, false],
-    [false, false, false, true, false, false],
-    [false, true, true, true, false, false],
-    [false, false, false, false, false, false],
+    [false, true, true, true, false],
+    [false, false, false, true, false],
+    [false, true, true, true, false],
+    [false, false, false, true, false],
+    [false, true, true, true, false],
   ],
   '9': [
-    [false, true, true, true, false, false],
-    [false, true, false, true, false, false],
-    [false, true, true, true, false, false],
-    [false, false, false, true, false, false],
-    [false, true, true, true, false, false],
-    [false, false, false, false, false, false],
+    [false, true, true, true, false],
+    [false, true, false, true, false],
+    [false, true, true, true, false],
+    [false, false, false, true, false],
+    [false, true, true, true, false],
   ],
   '7': [
-    [false, true, true, true, false, false],
-    [false, false, false, true, false, false],
-    [false, false, false, true, false, false],
-    [false, false, false, true, false, false],
-    [false, false, false, true, false, false],
-    [false, false, false, false, false, false],
+    [false, true, true, true, false],
+    [false, false, false, true, false],
+    [false, false, false, true, false],
+    [false, false, false, true, false],
+    [false, false, false, true, false],
   ],
 };
 
@@ -80,13 +75,13 @@ const generateStaticRandomLayout = (numIcons, totalCells) => {
 
 // 10 statikus, random elrendezés előre generálva
 const staticRandomLayouts = Array.from({ length: 10 }, () =>
-  generateStaticRandomLayout(13, 36)
+  generateStaticRandomLayout(13, 25)
 );
 
 
 function Desktop() {
 
-  const gridSize = 6;
+  const gridSize = 5;
 
   const [currentLayoutMatrix, setCurrentLayoutMatrix] = useState([]); // A jelenlegi 6x6-os boolean mátrix
   const [isAccessDeniedOpen, setIsAccessDeniedOpen] = useState(false);
@@ -108,7 +103,7 @@ function Desktop() {
 
       // Döntés véletlenszerűen, melyik tömböt használjuk
       // Pl. 50% esély a számmintákra, 50% esély a random mintákra
-      const useNumberPattern = Math.random() < 0.5;
+      const useNumberPattern = Math.random() < 1.5;
 
       if (useNumberPattern) {
         // Válasszunk a számminták közül
