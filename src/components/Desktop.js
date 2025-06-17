@@ -13,8 +13,8 @@ import { ExclamationTriangleFill } from 'react-bootstrap-icons';
 
 import styles from './Desktop.module.scss';
 
-// Segédfüggvény egy üres 6x6-os boolean mátrix létrehozásához
-const createEmptyGrid = () => Array(6).fill(null).map(() => Array(6).fill(false));
+// Segédfüggvény egy üres 5x5-os boolean mátrix létrehozásához
+const createEmptyGrid = () => Array(5).fill(null).map(() => Array(5).fill(false));
 
 // Statikus 5x5-ös boolean mátrixok a számokhoz (ÚJ DEFINÍCIÓ)
 const numberPatterns = {
@@ -82,8 +82,8 @@ const generateStaticRandomLayout = (numIcons, totalCells) => {
 
   // Alakítsuk vissza 6x6-os mátrixá
   let current = 0;
-  for (let r = 0; r < 6; r++) {
-    for (let c = 0; c < 6; c++) {
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
       grid[r][c] = flatGrid[current++];
     }
   }
@@ -113,6 +113,9 @@ function Desktop() {
   const [isSolutionModalOpen, setIsSolutionModalOpen] = useState(false);
   const [solutionInputs, setSolutionInputs] = useState(Array(5).fill('')); // 5 üres string a bemeneteknek
   const [solutionMessage, setSolutionMessage] = useState(''); // Üzenet a megfejtéshez
+
+  // ÚJ állapot a kurzor változtatásához
+  const [isCustomCursor, setIsCustomCursor] = useState(false); // Kezdetben alapértelmezett kurzor
 
   // Kezdeti elrendezés beállítása (az első statikus véletlenszerű elrendezés)
   useEffect(() => {
@@ -148,6 +151,26 @@ function Desktop() {
 
     return () => clearInterval(layoutInterval);
   }, [patternIndex, randomLayoutIndex]); // Függőségek frissítve
+
+   // ÚJ: Kurzort változtató useEffect
+   useEffect(() => {
+    const cursorInterval = setInterval(() => {
+      setIsCustomCursor(prev => !prev); // Váltás az egyedi és alapértelmezett kurzor között
+    }, 2000); // Váltás 2 másodpercenként
+
+    return () => clearInterval(cursorInterval); // Tisztítás komponens eltávolításakor
+  }, []);
+
+  useEffect(() => {
+    if (isCustomCursor) {
+      // Kérlek, cseréld ki a '/my-cursor.png' részt a saját kurzorképed elérési útjára
+      // Helyezd a 'my-cursor.png' fájlt a 'public' mappába a projekt gyökerében
+      console.log("Use flame")
+      document.body.style.cursor = `url('/flame.png'), auto`;
+    } else {
+      document.body.style.cursor = 'auto'; // Alapértelmezett kurzor
+    }
+  }, [isCustomCursor]);
 
   const handleIconClick = () => { // Nincs már iconName prop, mert mind File
     setIsAccessDeniedOpen(true);
