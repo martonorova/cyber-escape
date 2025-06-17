@@ -16,41 +16,56 @@ const createEmptyGrid = () => Array(6).fill(null).map(() => Array(6).fill(false)
 
 // Statikus 5x5-ös boolean mátrixok a számokhoz (ÚJ DEFINÍCIÓ)
 const numberPatterns = {
-  '8': [
-    [false, true, true, true, false],
-    [false, true, false, true, false],
-    [false, true, true, true, false],
-    [false, true, false, true, false],
-    [false, true, true, true, false],
-  ],
-  '5': [
-    [false, true, true, true, false],
-    [false, true, false, false, false],
-    [false, true, true, true, false],
-    [false, false, false, true, false],
-    [false, true, true, true, false],
-  ],
-  '3': [
-    [false, true, true, true, false],
-    [false, false, false, true, false],
-    [false, true, true, true, false],
-    [false, false, false, true, false],
-    [false, true, true, true, false],
-  ],
-  '9': [
-    [false, true, true, true, false],
-    [false, true, false, true, false],
-    [false, true, true, true, false],
-    [false, false, false, true, false],
-    [false, true, true, true, false],
-  ],
-  '7': [
-    [false, true, true, true, false],
-    [false, false, false, true, false],
-    [false, false, false, true, false],
-    [false, false, false, true, false],
-    [false, false, false, true, false],
-  ],
+  '8': {
+    matrix: [
+      [false, true, true, true, false],
+      [false, true, false, true, false],
+      [false, true, true, true, false],
+      [false, true, false, true, false],
+      [false, true, true, true, false],
+    ],
+    position: 0
+  },
+  '5': {
+    matrix: [
+      [false, true, true, true, false],
+      [false, true, false, false, false],
+      [false, true, true, true, false],
+      [false, false, false, true, false],
+      [false, true, true, true, false],
+    ],
+    position: 1
+  },
+  '3': {
+    matrix: [
+      [false, true, true, true, false],
+      [false, false, false, true, false],
+      [false, true, true, true, false],
+      [false, false, false, true, false],
+      [false, true, true, true, false],
+    ],
+    position: 2
+  },
+  '9': {
+    matrix: [
+      [false, true, true, true, false],
+      [false, true, false, true, false],
+      [false, true, true, true, false],
+      [false, false, false, true, false],
+      [false, true, true, true, false],
+    ],
+    position: 3
+  },
+  '7': {
+    matrix: [
+      [false, true, true, true, false],
+      [false, false, false, true, false],
+      [false, false, false, true, false],
+      [false, false, false, true, false],
+      [false, false, false, true, false],
+    ],
+    position: 4
+  },
 };
 
 // Segédfüggvény statikus véletlenszerű elrendezés generálásához
@@ -83,7 +98,7 @@ function Desktop() {
 
   const gridSize = 5;
 
-  const [currentLayoutMatrix, setCurrentLayoutMatrix] = useState([]); // A jelenlegi 6x6-os boolean mátrix
+  const [currentLayoutMatrix, setCurrentLayoutMatrix] = useState([]); // A jelenlegi 5x5-os boolean mátrix
   const [isAccessDeniedOpen, setIsAccessDeniedOpen] = useState(false);
   const [patternIndex, setPatternIndex] = useState(0); // Index a számminták között
   const [randomLayoutIndex, setRandomLayoutIndex] = useState(0); // Index a random elrendezések között
@@ -103,16 +118,17 @@ function Desktop() {
 
       // Döntés véletlenszerűen, melyik tömböt használjuk
       // Pl. 50% esély a számmintákra, 50% esély a random mintákra
-      const useNumberPattern = Math.random() < 1.5;
+      const useNumberPattern = Math.random() < 1.8;
 
       if (useNumberPattern) {
         // Válasszunk a számminták közül
         const numberKeys = Object.keys(numberPatterns);
         const nextIndex = (patternIndex + 1) % numberKeys.length;
+        const currentPattern = numberPatterns[numberKeys[nextIndex]]; // A teljes minta objektum lekérése
         setPatternIndex(nextIndex);
-        setCurrentLayoutMatrix(numberPatterns[numberKeys[nextIndex]]);
+        setCurrentLayoutMatrix(currentPattern.matrix);
         setCurrentPatternType('number'); // Beállítjuk a típust 'number'-re
-        setCurrentNumberKeyIndex(nextIndex); // Tároljuk a szám kulcsának indexét
+        setCurrentNumberKeyIndex(currentPattern.position); // Tároljuk a szám kulcsának indexét
       } else {
         // Válasszunk a random elrendezések közül
         const nextIndex = (randomLayoutIndex + 1) % staticRandomLayouts.length;
