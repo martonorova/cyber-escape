@@ -56,3 +56,25 @@
     word-break: break-word;
   }
 }
+
+.specialIconOnly {
+  background-color: transparent !important; // Nincs háttérszín
+  box-shadow: none !important; // Nincs árnyék
+  border: none !important; // Nincs keret
+  cursor: default !important; // Ne legyen kattintható kurzor
+  &:hover {
+    transform: none !important; // Nincs hover effekt
+    box-shadow: none !important;
+  }
+  &:active {
+    transform: none !important; // Nincs active effekt
+    box-shadow: none !important;
+  }
+  .card-img-top {
+    // Ha az ikonkép középre akarjuk tenni a 75x75px-es kártyán
+    width: 75px !important; // Töltse ki az egész szélességet
+    height: 75px !important; // Töltse ki az egész magasságot
+    object-fit: contain; // Méretezze át, hogy beleférjen
+    margin: 0 !important; // Ne legyen margó
+  }
+}
