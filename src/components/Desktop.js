@@ -158,7 +158,7 @@ function Desktop() {
   useEffect(() => {
     setCurrentLayoutMatrix(staticRandomLayouts[0]);
     setIconNames(generateRandomIconNames(gridSize, totalGridCells)); // Generáljuk a kezdeti neveket is
-  }, []);
+  }, [totalGridCells]);
 
   // ÚJ: useEffect, ami leállítja az összes időzítőt és beállítja a végső elrendezést
   useEffect(() => {
@@ -170,7 +170,7 @@ function Desktop() {
         setCurrentLayoutMatrix(staticRandomLayouts[0]);
         setIconNames(generateRandomIconNames(gridSize, totalGridCells)); // Generálunk új neveket a rögzített elrendezéshez
     }
-  }, [areTimeBasedChangesStopped]); // Ez az useEffect akkor fut le, ha a flag változik
+  }, [areTimeBasedChangesStopped, totalGridCells]); // Ez az useEffect akkor fut le, ha a flag változik
 
   // Layout váltás időzítő
   useEffect(() => {
@@ -205,7 +205,7 @@ function Desktop() {
     }
 
     return () => clearInterval(layoutInterval);
-  }, [patternIndex, randomLayoutIndex, areTimeBasedChangesStopped]); // Függőségek frissítve
+  }, [patternIndex, randomLayoutIndex, areTimeBasedChangesStopped, totalGridCells]); // Függőségek frissítve
 
    // ÚJ: Kurzort változtató useEffect
    useEffect(() => {
