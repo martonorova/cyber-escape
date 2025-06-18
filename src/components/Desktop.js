@@ -9,7 +9,7 @@ import fileIcon from '../logo.svg';
 import dragonIcon from '../assets/dragon-color.png';
 // import dragonIcon from '../assets/dragon2.jpeg';
 
-import { ExclamationTriangleFill, FileEarmarkArrowDownFill } from 'react-bootstrap-icons';
+import { ExclamationTriangleFill, FileEarmarkArrowDownFill, CheckCircleFill } from 'react-bootstrap-icons';
 
 import styles from './Desktop.module.scss';
 
@@ -113,9 +113,13 @@ function Desktop() {
   const [isSolutionModalOpen, setIsSolutionModalOpen] = useState(false);
   const [solutionInputs, setSolutionInputs] = useState(Array(5).fill('')); // 5 üres string a bemeneteknek
   const [solutionMessage, setSolutionMessage] = useState(''); // Üzenet a megfejtéshez
+  const [isSolutionCorrect, setIsSolutionCorrect] = useState(false); // ÚJ: Megoldás helyességének állapota
 
   // ÚJ állapot a kurzor változtatásához
   const [isCustomCursor, setIsCustomCursor] = useState(false); // Kezdetben alapértelmezett kurzor
+
+  // ÚJ: Állapot a globális időalapú változások leállítására
+  const [areTimeBasedChangesStopped, setAreTimeBasedChangesStopped] = useState(false);
 
   // ÚJ Állapotok az időzítő modalhoz
   const [isCountdownModalOpen, setIsCountdownModalOpen] = useState(false);
@@ -123,43 +127,61 @@ function Desktop() {
   const [countdownMessage, setCountdownMessage] = useState('');
   const [isMainTimerActive, setIsMainTimerActive] = useState(true); // Szabályozza az időzítő működését
 
-   // Ref, hogy nyomon kövessük, mikor jelent meg utoljára az 5 perces modal
-   const lastFiveMinuteModalTimeRef = useRef(null);
+  // Ref, hogy nyomon kövessük, mikor jelent meg utoljára az 5 perces modal
+  const lastFiveMinuteModalTimeRef = useRef(null);
+
+  // Üzenet az Access Denied modalhoz, ami változhat
+  const [accessDeniedMessage, setAccessDeniedMessage] = useState("Hozzáférés megtagadva! A fájl felülvizsgálat alatt.");
 
   // Kezdeti elrendezés beállítása (az első statikus véletlenszerű elrendezés)
   useEffect(() => {
     setCurrentLayoutMatrix(staticRandomLayouts[0]);
   }, []);
 
+  // ÚJ: useEffect, ami leállítja az összes időzítőt és beállítja a végső elrendezést
+  useEffect(() => {
+    if (areTimeBasedChangesStopped) {
+        setIsMainTimerActive(false); // Leállítja a fő visszaszámlálót
+        setIsCustomCursor(false); // Visszaállítja az alap kurzort (ezt a saját useEffectje kezeli)
+        
+        // Beállítja az elrendezést az első randomizáltra
+        setCurrentLayoutMatrix(staticRandomLayouts[0]);
+    }
+  }, [areTimeBasedChangesStopped]); // Ez az useEffect akkor fut le, ha a flag változik
+
   // Layout váltás időzítő
   useEffect(() => {
-    const layoutInterval = setInterval(() => {
+    let layoutInterval;
+    // Csak akkor fut, ha nincsenek leállítva az időalapú változások
+    if (!areTimeBasedChangesStopped) {
+      layoutInterval = setInterval(() => {
 
-      // Döntés véletlenszerűen, melyik tömböt használjuk
-      // Pl. 50% esély a számmintákra, 50% esély a random mintákra
-      const useNumberPattern = Math.random() < 0.5;
+        // Döntés véletlenszerűen, melyik tömböt használjuk
+        // Pl. 50% esély a számmintákra, 50% esély a random mintákra
+        const useNumberPattern = Math.random() < 0.5;
 
-      if (useNumberPattern) {
-        // Válasszunk a számminták közül
-        const numberKeys = Object.keys(numberPatterns);
-        const nextIndex = (patternIndex + 1) % numberKeys.length;
-        const currentPattern = numberPatterns[numberKeys[nextIndex]]; // A teljes minta objektum lekérése
-        setPatternIndex(nextIndex);
-        setCurrentLayoutMatrix(currentPattern.matrix);
-        setCurrentPatternType('number'); // Beállítjuk a típust 'number'-re
-        setCurrentNumberKeyIndex(currentPattern.position); // Tároljuk a szám kulcsának indexét
-      } else {
-        // Válasszunk a random elrendezések közül
-        const nextIndex = (randomLayoutIndex + 1) % staticRandomLayouts.length;
-        setRandomLayoutIndex(nextIndex);
-        setCurrentLayoutMatrix(staticRandomLayouts[nextIndex]);
-        setCurrentPatternType('random'); // Beállítjuk a típust 'random'-ra
-        setCurrentNumberKeyIndex(-1); // Nincs releváns index, ha random
-      }
-    }, 10000); // 5 másodpercenként vált
+        if (useNumberPattern) {
+          // Válasszunk a számminták közül
+          const numberKeys = Object.keys(numberPatterns);
+          const nextIndex = (patternIndex + 1) % numberKeys.length;
+          const currentPattern = numberPatterns[numberKeys[nextIndex]]; // A teljes minta objektum lekérése
+          setPatternIndex(nextIndex);
+          setCurrentLayoutMatrix(currentPattern.matrix);
+          setCurrentPatternType('number'); // Beállítjuk a típust 'number'-re
+          setCurrentNumberKeyIndex(currentPattern.position); // Tároljuk a szám kulcsának indexét
+        } else {
+          // Válasszunk a random elrendezések közül
+          const nextIndex = (randomLayoutIndex + 1) % staticRandomLayouts.length;
+          setRandomLayoutIndex(nextIndex);
+          setCurrentLayoutMatrix(staticRandomLayouts[nextIndex]);
+          setCurrentPatternType('random'); // Beállítjuk a típust 'random'-ra
+          setCurrentNumberKeyIndex(-1); // Nincs releváns index, ha random
+        }
+      }, 10000); // 5 másodpercenként vált
+    }
 
     return () => clearInterval(layoutInterval);
-  }, [patternIndex, randomLayoutIndex]); // Függőségek frissítve
+  }, [patternIndex, randomLayoutIndex, areTimeBasedChangesStopped]); // Függőségek frissítve
 
    // ÚJ: Kurzort változtató useEffect
    useEffect(() => {
@@ -171,7 +193,7 @@ function Desktop() {
   }, []);
 
   useEffect(() => {
-    if (isCustomCursor) {
+    if (isCustomCursor && !areTimeBasedChangesStopped) {
       // Kérlek, cseréld ki a '/my-cursor.png' részt a saját kurzorképed elérési útjára
       // Helyezd a 'my-cursor.png' fájlt a 'public' mappába a projekt gyökerében
       console.log("Use flame")
@@ -179,13 +201,14 @@ function Desktop() {
     } else {
       document.body.style.cursor = 'auto'; // Alapértelmezett kurzor
     }
-  }, [isCustomCursor]);
+  }, [isCustomCursor, areTimeBasedChangesStopped]);
 
    // ÚJ: Fő időzítő és 5 perces modal trigger
    useEffect(() => {
-    if (!isMainTimerActive || countdownTime <= 0) {
-        if (countdownTime === 0 && isMainTimerActive) { // Az időzítő épp most érte el a 0-át
+    if (!isMainTimerActive || countdownTime <= 0 || areTimeBasedChangesStopped) {
+        if (countdownTime === 0 && isMainTimerActive && !areTimeBasedChangesStopped) { // Az időzítő épp most érte el a 0-át
             setIsMainTimerActive(false); // Leállítjuk az időzítőt
+            setAreTimeBasedChangesStopped(true);
             setIsCountdownModalOpen(true);
             setCountdownMessage("Letöltés befejezve! Teljes hozzáférés megadva!"); // Végső üzenet
             // A végső üzenet modalja nem záródik be automatikusan
@@ -222,7 +245,7 @@ function Desktop() {
     }, 1000);
 
     return () => clearInterval(timerInterval); // Tisztítás komponens eltávolításakor vagy függőség változásakor
-  }, [isMainTimerActive, countdownTime]); // Függőségek
+  }, [isMainTimerActive, countdownTime, areTimeBasedChangesStopped]); // Függőségek
 
   // Segédfüggvény az idő formázásához MM:SS formátumban
   const formatTime = (totalSeconds) => {
@@ -231,12 +254,22 @@ function Desktop() {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   };
 
-  const handleIconClick = () => { // Nincs már iconName prop, mert mind File
-    setIsAccessDeniedOpen(true);
+  const handleIconClick = () => {
+    if (isSolutionCorrect) {
+        setAccessDeniedMessage("A művelet sikeresen végrehajtva! A rendszer védett."); // Más üzenet
+        setIsAccessDeniedOpen(true);
+    } else {
+        setAccessDeniedMessage("Hozzáférés megtagadva! A fájl felülvizsgálat alatt."); // Eredeti üzenet
+        setIsAccessDeniedOpen(true);
+    }
   };
 
    // ÚJ: Megoldás gomb kattintásának kezelése
    const handleSolutionButtonClick = () => {
+    // Ha már leálltak a változások, ne nyissa meg a solution modalt
+    if (areTimeBasedChangesStopped) {
+      return;
+    }
     setIsSolutionModalOpen(true); // Megnyitja a megoldás ablakot
     setSolutionInputs(Array(5).fill('')); // Törli a korábbi bemeneteket
     setSolutionMessage(''); // Törli az üzenetet
@@ -259,6 +292,8 @@ function Desktop() {
 
     if (enteredSolution === correctSolution) {
       setSolutionMessage('Letöltés megszakítva!');
+      setIsSolutionCorrect(true); // Megoldás helyes, beállítjuk az állapotot
+      setAreTimeBasedChangesStopped(true); // Leállítjuk az ÖSSZES időalapú változást
     } else {
       setSolutionMessage('Hibás kód.');
     }
@@ -311,9 +346,9 @@ function Desktop() {
 
     for (let i = 0; i < numberOfCols; i++) {
 
-      // Csak akkor jelenítünk meg ikont, ha számmintát mutatunk,
-      // ÉS az aktuális oszlop indexe megegyezik a számminta indexével
-      const showIcon = currentPatternType === 'number' && i === currentNumberKeyIndex;
+      // Az extra sor ikonja csak akkor jelenik meg, ha nincs leállítva a rendszer
+      const showIcon = !areTimeBasedChangesStopped && currentPatternType === 'number' && i === currentNumberKeyIndex;
+      
 
       iconsInRow.push(
         <Col key={`additional-icon-${i}`} xs={2} className="d-flex justify-content-center">
@@ -370,12 +405,16 @@ function Desktop() {
       {/* Access Denied Modal */}
       <Modal show={isAccessDeniedOpen} onHide={() => setIsAccessDeniedOpen(false)}>
         <Modal.Header closeButton>
-          <Modal.Title> <ExclamationTriangleFill /> HIBA!</Modal.Title>
+          {isSolutionCorrect ? (
+            <Modal.Title> <CheckCircleFill /> Sikeres művelet </Modal.Title>
+          ) : (
+            <Modal.Title> <ExclamationTriangleFill /> HIBA! </Modal.Title>
+          )}
+          
         </Modal.Header>
         <Modal.Body>
           
-          <p className={styles.errorText}>Hozzáférés megtagadva!</p>
-          <p className={styles.errorText}>A fájl felülvizsgálat alatt.</p>
+        <p className={styles.errorText}>{accessDeniedMessage}</p>
         </Modal.Body>
       </Modal>
 
