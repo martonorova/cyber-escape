@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import { shuffle } from 'lodash'
 
@@ -6,10 +6,10 @@ import Taskbar from './Taskbar';
 import Icon from './Icon';
 import { Modal, Button, Container, Row, Col, Form } from 'react-bootstrap';
 import fileIcon from '../logo.svg';
-import dragonIcon from '../assets/dragon.png';
+import dragonIcon from '../assets/dragon-color.png';
 // import dragonIcon from '../assets/dragon2.jpeg';
 
-import { ExclamationTriangleFill } from 'react-bootstrap-icons';
+import { ExclamationTriangleFill, FileEarmarkArrowDownFill } from 'react-bootstrap-icons';
 
 import styles from './Desktop.module.scss';
 
@@ -117,6 +117,15 @@ function Desktop() {
   // ÚJ állapot a kurzor változtatásához
   const [isCustomCursor, setIsCustomCursor] = useState(false); // Kezdetben alapértelmezett kurzor
 
+  // ÚJ Állapotok az időzítő modalhoz
+  const [isCountdownModalOpen, setIsCountdownModalOpen] = useState(false);
+  const [countdownTime, setCountdownTime] = useState(2 * 60); // TODO change it to 25* 60 // 25 perc másodpercben
+  const [countdownMessage, setCountdownMessage] = useState('');
+  const [isMainTimerActive, setIsMainTimerActive] = useState(true); // Szabályozza az időzítő működését
+
+   // Ref, hogy nyomon kövessük, mikor jelent meg utoljára az 5 perces modal
+   const lastFiveMinuteModalTimeRef = useRef(null);
+
   // Kezdeti elrendezés beállítása (az első statikus véletlenszerű elrendezés)
   useEffect(() => {
     setCurrentLayoutMatrix(staticRandomLayouts[0]);
@@ -171,6 +180,56 @@ function Desktop() {
       document.body.style.cursor = 'auto'; // Alapértelmezett kurzor
     }
   }, [isCustomCursor]);
+
+   // ÚJ: Fő időzítő és 5 perces modal trigger
+   useEffect(() => {
+    if (!isMainTimerActive || countdownTime <= 0) {
+        if (countdownTime === 0 && isMainTimerActive) { // Az időzítő épp most érte el a 0-át
+            setIsMainTimerActive(false); // Leállítjuk az időzítőt
+            setIsCountdownModalOpen(true);
+            setCountdownMessage("Letöltés befejezve! Teljes hozzáférés megadva!"); // Végső üzenet
+            // A végső üzenet modalja nem záródik be automatikusan
+        }
+        return; // Nem indítjuk el az intervallumot, ha nem aktív vagy már lejárt
+    }
+
+    const timerInterval = setInterval(() => {
+        setCountdownTime(prevTime => {
+            const newTime = prevTime - 1;
+
+            // Trigger 5 perces periodikus modal
+            // Akkor váltódik ki, ha az idő egy 5 perces (300 másodperces) többszöröse, és nem 0.
+            // Például: 20 perc (1200 mp), 15 perc (900 mp), 10 perc (600 mp), 5 perc (300 mp)
+            if (newTime > 0 && newTime % (5 * 6) === 0) { // TODO change it to 5 * 60 for real 5 minutes
+                // Győződjünk meg róla, hogy csak egyszer váltódik ki per intervallum
+                const triggerPoint = newTime;
+                if (lastFiveMinuteModalTimeRef.current !== triggerPoint) {
+                    setIsCountdownModalOpen(true);
+                    const minutesLeft = Math.floor(newTime / 60);
+                    setCountdownMessage(`Teljes hozzáférés megadásáig ${minutesLeft} perc maradt. Ne indítsa újra a rendszert!`);
+                    lastFiveMinuteModalTimeRef.current = triggerPoint; // Frissítjük a referenciát
+
+                    // Automatikusan elrejti a modalt 10 másodperc után
+                    setTimeout(() => {
+                        setIsCountdownModalOpen(false);
+                        setCountdownMessage('');
+                    }, 10000);
+                }
+            }
+
+            return newTime;
+        });
+    }, 1000);
+
+    return () => clearInterval(timerInterval); // Tisztítás komponens eltávolításakor vagy függőség változásakor
+  }, [isMainTimerActive, countdownTime]); // Függőségek
+
+  // Segédfüggvény az idő formázásához MM:SS formátumban
+  const formatTime = (totalSeconds) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
 
   const handleIconClick = () => { // Nincs már iconName prop, mert mind File
     setIsAccessDeniedOpen(true);
@@ -348,6 +407,36 @@ function Desktop() {
             OK
           </Button>
         </Modal.Footer>
+      </Modal>
+
+       {/* ÚJ: Visszaszámláló Modal ablak */}
+       <Modal show={isCountdownModalOpen} onHide={() => {
+          // Csak akkor engedélyezzük a bezárást, ha nem a végső üzenet, vagy ha kifejezetten szükséges.
+          // A végső üzenet (countdownTime === 0) nem záródik be automatikusan "Rendben" gombbal.
+          if (countdownTime > 0) setIsCountdownModalOpen(false);
+      }}>
+          <Modal.Header closeButton={countdownTime > 0}> {/* Csak akkor jelenjen meg a bezárás gomb, ha nem a végső üzenet */}
+              <Modal.Title><FileEarmarkArrowDownFill /> Letöltés</Modal.Title>
+          </Modal.Header>
+          <Modal.Body className="text-center">
+              <p className="fs-4 fw-bold">{countdownMessage}</p>
+              {countdownTime > 0 && ( // Csak akkor jelenítjük meg az időt, ha még van idő
+                  <p className="fs-1 fw-bold text-danger">{formatTime(countdownTime)}</p>
+              )}
+          </Modal.Body>
+          <Modal.Footer>
+              {countdownTime > 0 ? (
+                  <Button variant="secondary" onClick={() => setIsCountdownModalOpen(false)}>
+                      Rendben
+                  </Button>
+              ) : (
+                  // // A végső üzenethez más gomb vagy nincs gomb, ha a felhasználó nem avatkozhat be
+                  // <Button variant="danger" onClick={() => { /* Itt kezelheted a végső eseményt */ }}>
+                  //     Értem
+                  // </Button>
+                  <div></div>
+              )}
+          </Modal.Footer>
       </Modal>
     </div>
   );
