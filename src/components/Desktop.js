@@ -95,10 +95,28 @@ const staticRandomLayouts = Array.from({ length: 10 }, () =>
   generateStaticRandomLayout(13, 25)
 );
 
+// ÚJ SEGÉDFÜGGVÉNY: Véletlenszerű ikonnevek generálásához
+const generateRandomIconNames = (gridSize, totalCells) => {
+  const names = {};
+  // Generálunk több számot, mint ahány cella van, és összekeverjük, hogy véletlenszerűbb legyen
+  const availableNumbers = shuffle(Array.from({ length: totalCells * 3 }, (_, i) => i + 1));
+  let numIndex = 0;
+  for (let r = 0; r < gridSize; r++) {
+      for (let c = 0; c < gridSize; c++) {
+          const uniqueId = `${r}-${c}`;
+          const num = availableNumbers[numIndex % availableNumbers.length]; // Változó szám a kevert listából
+          names[uniqueId] = `Akta ${String(num).padStart(2, '0')}`; // Formázás "Akta XX"
+          numIndex++;
+      }
+  }
+  return names;
+};
+
 
 function Desktop() {
 
   const gridSize = 5;
+  const totalGridCells = gridSize * gridSize;
 
   const [currentLayoutMatrix, setCurrentLayoutMatrix] = useState([]); // A jelenlegi 5x5-os boolean mátrix
   const [isAccessDeniedOpen, setIsAccessDeniedOpen] = useState(false);
@@ -133,9 +151,13 @@ function Desktop() {
   // Üzenet az Access Denied modalhoz, ami változhat
   const [accessDeniedMessage, setAccessDeniedMessage] = useState("Hozzáférés megtagadva! A fájl felülvizsgálat alatt.");
 
+   // ÚJ ÁLLAPOT: az ikonok neveinek tárolására
+   const [iconNames, setIconNames] = useState({});
+
   // Kezdeti elrendezés beállítása (az első statikus véletlenszerű elrendezés)
   useEffect(() => {
     setCurrentLayoutMatrix(staticRandomLayouts[0]);
+    setIconNames(generateRandomIconNames(gridSize, totalGridCells)); // Generáljuk a kezdeti neveket is
   }, []);
 
   // ÚJ: useEffect, ami leállítja az összes időzítőt és beállítja a végső elrendezést
@@ -146,6 +168,7 @@ function Desktop() {
         
         // Beállítja az elrendezést az első randomizáltra
         setCurrentLayoutMatrix(staticRandomLayouts[0]);
+        setIconNames(generateRandomIconNames(gridSize, totalGridCells)); // Generálunk új neveket a rögzített elrendezéshez
     }
   }, [areTimeBasedChangesStopped]); // Ez az useEffect akkor fut le, ha a flag változik
 
@@ -176,6 +199,7 @@ function Desktop() {
           setCurrentLayoutMatrix(staticRandomLayouts[nextIndex]);
           setCurrentPatternType('random'); // Beállítjuk a típust 'random'-ra
           setCurrentNumberKeyIndex(-1); // Nincs releváns index, ha random
+          setIconNames(generateRandomIconNames(gridSize, totalGridCells)); // Új nevek generálása az új elrendezéshez
         }
       }, 10000); // 5 másodpercenként vált
     }
@@ -306,12 +330,13 @@ function Desktop() {
       for (let c = 0; c < gridSize; c++) {
         const hasIcon = currentLayoutMatrix[r] && currentLayoutMatrix[r][c]; // Ellenőrizzük, hogy van-e ikon
         const uniqueKey = `icon-${r}-${c}`; // Egyedi kulcs minden Col-hoz
+        const iconName = iconNames[`${r}-${c}`] || `Akta --`; // Lekérjük a generált nevet
 
         colsInRow.push(
           <Col key={uniqueKey} xs={2} className="d-flex justify-content-center">
             {hasIcon ? ( // Ha van ikon (true a mátrixban)
               <Icon
-                name="File" // Mindig "File"
+                name={iconName}
                 icon={fileIcon}
                 isDummy={false} // Nem dummy, mert látható File ikon
                 onClick={handleIconClick}
