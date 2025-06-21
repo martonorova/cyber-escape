@@ -220,7 +220,6 @@ function Desktop() {
     if (isCustomCursor && !areTimeBasedChangesStopped) {
       // Kérlek, cseréld ki a '/my-cursor.png' részt a saját kurzorképed elérési útjára
       // Helyezd a 'my-cursor.png' fájlt a 'public' mappába a projekt gyökerében
-      console.log("Use flame")
       document.body.style.cursor = `url('/flame.png'), auto`;
     } else {
       document.body.style.cursor = 'auto'; // Alapértelmezett kurzor
