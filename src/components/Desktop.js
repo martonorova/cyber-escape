@@ -141,7 +141,7 @@ function Desktop() {
 
   // ÚJ Állapotok az időzítő modalhoz
   const [isCountdownModalOpen, setIsCountdownModalOpen] = useState(false);
-  const [countdownTime, setCountdownTime] = useState(2 * 60); // TODO change it to 25* 60 // 25 perc másodpercben
+  const [countdownTime, setCountdownTime] = useState(25 * 60); // 25 perc másodpercben
   const [countdownMessage, setCountdownMessage] = useState('');
   const [isMainTimerActive, setIsMainTimerActive] = useState(true); // Szabályozza az időzítő működését
 
@@ -180,8 +180,8 @@ function Desktop() {
       layoutInterval = setInterval(() => {
 
         // Döntés véletlenszerűen, melyik tömböt használjuk
-        // Pl. 50% esély a számmintákra, 50% esély a random mintákra
-        const useNumberPattern = Math.random() < 0.5;
+        // Pl. 60% esély a számmintákra, 40% esély a random mintákra
+        const useNumberPattern = Math.random() < 0.6;
 
         if (useNumberPattern) {
           // Válasszunk a számminták közül
@@ -247,7 +247,7 @@ function Desktop() {
             // Trigger 5 perces periodikus modal
             // Akkor váltódik ki, ha az idő egy 5 perces (300 másodperces) többszöröse, és nem 0.
             // Például: 20 perc (1200 mp), 15 perc (900 mp), 10 perc (600 mp), 5 perc (300 mp)
-            if (newTime > 0 && newTime % (5 * 6) === 0) { // TODO change it to 5 * 60 for real 5 minutes
+            if (newTime > 0 && newTime % (5 * 60) === 0) {
                 // Győződjünk meg róla, hogy csak egyszer váltódik ki per intervallum
                 const triggerPoint = newTime;
                 if (lastFiveMinuteModalTimeRef.current !== triggerPoint) {
