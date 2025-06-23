@@ -1,364 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tekeres Agency Bázis</title>
-    <!--
-        Include Tailwind CSS for easy styling.
-        It provides utility classes to quickly style elements without writing custom CSS.
-    -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /*
-            Custom CSS for the 'Inter' font.
-            Tailwind CSS typically uses a system font stack, but we can override it if a specific font is desired.
-            This ensures a consistent look across different operating systems.
-        */
         body {
             font-family: "Inter", sans-serif;
-            /*
-                Set a background image for the body.
-                The 'url()' function specifies the path to the image.
-                'background-size: cover;' scales the image to cover the entire container.
-                'background-position: center center;' centers the image.
-                'background-repeat: no-repeat;' prevents the image from repeating.
-                'background-attachment: fixed;' makes the background image fixed relative to the viewport,
-                so it doesn't scroll with the content.
-
-                The background image is now set to 'térkép.jpg'.
-            */
-            background-image: url('./tekeres-map.png');
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            min-height: 100vh; /* Ensure body takes full viewport height */
-            display: flex; /* Use flexbox to center content */
-            align-items: center; /* Center content vertically */
-            justify-content: center; /* Center content horizontally */
-            /* Increased padding to reveal more background around the centered content */
-            padding: 2rem; /* Consistent padding applied here */
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+            /* Added a light background for context */
         }
 
-        /*
-            Keyframe animation for the blinking effect.
-            It smoothly transitions the opacity of the element, making it fade in and out.
-        */
+        /* This container now centers our map wrapper in the viewport */
+        .contentContainer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* NEW: The wrapper for the map image and the lights */
+        #map-wrapper {
+            position: relative;
+            /* This is the key for positioning the lights */
+            max-width: 95vw;
+            /* Limit the max width */
+            max-height: 95vh;
+            /* Limit the max height */
+            aspect-ratio: 13 / 9;
+            /* Optional: suggest an aspect ratio */
+        }
+
+        @media (min-width: 1200px) {
+            #map-wrapper {
+                max-width: 98vw;
+                /* Larger max width for big screens */
+                max-height: 98vh;
+                /* Larger max height for big screens */
+            }
+        }
+
+        /* NEW: Styles for the actual map image */
+        #map-image {
+            display: block;
+            /* Removes bottom space under the image */
+            width: 100%;
+            /* Makes the image responsive */
+            height: 100%;
+            /* Makes the image fill the wrapper */
+            object-fit: contain;
+            /* Behaves like background-size: contain */
+        }
+
         @keyframes blink {
-            0%, 100% { opacity: 1; } /* Fully visible */
-            50% { opacity: 0; }    /* Fully transparent */
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
         }
 
-        /*
-            Apply the blinking animation to the element with id 'riadoSign'.
-            'animation: blink 1s infinite;' means:
-            - 'blink': use the 'blink' keyframe animation
-            - '1s': the animation duration is 1 second
-            - 'infinite': the animation will repeat indefinitely
-        */
         #riadoSign {
             animation: blink 1s infinite;
         }
 
-        /*
-            Custom CSS for text stroke (outline).
-            -webkit-text-stroke is a non-standard property used for creating text outlines.
-            It specifies the width and color of the stroke.
-        */
         .text-stroke-black {
-            -webkit-text-stroke: 1.5px black; /* 1.5px black stroke */
-            text-stroke: 1.5px black; /* Standard property for other browsers, though less supported */
+            -webkit-text-stroke: 1.5px black;
+            text-stroke: 1.5px black;
         }
 
-        /*
-            Ensure the success screen covers the entire viewport and the logo fills it as a background.
-        */
         #successScreen {
-            background-image: url('./tekeres-logo-big.png'); /* Set the logo as background */
-            background-size: cover; /* Cover the entire element */
-            background-position: center center; /* Center the background image */
-            background-repeat: no-repeat; /* Do not repeat */
-            position: fixed; /* Fix it to the viewport */
+            background-image: url('./tekeres-logo-big.png');
+            /* Change 'cover' to 'contain' to prevent cropping */
+            background-size: contain;
+            background-position: center center;
+            background-repeat: no-repeat;
+
+            /* Add a background color to fill the empty space */
+            background-color: #000;
+            /* Black background */
+
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            z-index: 40; /* Ensure it's below the modal overlay if it appears, but above other content */
-            /* Use flexbox to position the text at the bottom */
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end; /* Push content to the bottom */
-            align-items: center; /* Center content horizontally */
-            padding-bottom: 2rem; /* Padding from the bottom for the text */
-            visibility: hidden; /* Start hidden and change with JS */
-            opacity: 0; /* For fade in transition */
-            transition: opacity 0.5s ease-in-out; /* Smooth transition */
+            z-index: 1040;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
         }
 
         #successScreen.visible {
-            visibility: visible;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 2rem;
             opacity: 1;
         }
 
-        /*
-            Base styles for all blinking red lights.
-            'position: fixed;' anchors it to the viewport.
-            'width' and 'height' define its size, and 'border-radius: 50%;' makes it circular.
-            'background-color' sets it to red, and the 'blink' animation is applied.
-            'z-index' ensures it's above other elements.
-        */
         .blinking-light {
-            position: fixed;
-            width: 60px; /* Increased size */
-            height: 60px; /* Increased size */
+            /* Position is now relative to #map-wrapper */
+            position: absolute;
+            width: 60px;
+            height: 60px;
             background-color: red;
             border-radius: 50%;
             animation: blink 1s infinite;
-            z-index: 60; /* Higher than other elements to ensure visibility */
-            box-shadow: 0 0 10px red, 0 0 20px red; /* Optional: adds a glow effect */
-            visibility: hidden; /* Initially hidden, will be shown by JS */
+            z-index: 10;
+            /* Above the map image */
+            box-shadow: 0 0 10px red, 0 0 20px red;
+            visibility: hidden;
+            /* Adjust size for smaller screens */
+            transform: translate(-50%, -50%);
+            /* Center the light on the exact coordinates */
         }
 
-        /* Specific positions for each light */
+        /* * Positions for each light. 
+         * The percentages are now relative to the image's dimensions.
+         * The transform property above ensures the center of the light is at the coordinate, not its top-left corner.
+        */
         #blinkingRedLight1 {
-            top: 10%;
-            left: 85%;
-            visibility: visible; /* Make the first one visible by default */
+            top: 15%;
+            left: 88%;
+            visibility: visible;
         }
+
         #blinkingRedLight2 {
-            top: 30%;
-            left: 42%;
-        }
-        #blinkingRedLight3 {
-            top: 30%;
-            left: 90%;
-        }
-        #blinkingRedLight4 {
-            top: 20%;
-            left: 20%;
-        }
-        #blinkingRedLight5 {
-            top: 2%;
+            top: 38%;
             left: 45%;
+        }
+
+        #blinkingRedLight3 {
+            top: 36%;
+            left: 92%;
+        }
+
+        #blinkingRedLight4 {
+            top: 23%;
+            left: 23%;
+        }
+
+        #blinkingRedLight5 {
+            top: 7%;
+            left: 49%;
         }
     </style>
 </head>
+
 <body>
-    <!--
-        Blinking red lights.
-        Initially, only the first one is visible. The others are hidden and will appear via JavaScript.
-    -->
-    <div id="blinkingRedLight1" class="blinking-light"></div>
-    <div id="blinkingRedLight2" class="blinking-light"></div>
-    <div id="blinkingRedLight3" class="blinking-light"></div>
-    <div id="blinkingRedLight4" class="blinking-light"></div>
-    <div id="blinkingRedLight5" class="blinking-light"></div>
+    <div class="contentContainer">
 
+        <div id="map-wrapper">
+            <img id="map-image" src="./tekeres-map.png" alt="Tekeres Agency Bázis Map">
 
-    <!--
-        Blinking sign for "RIADÓ" positioned in the top-left corner.
-        Initially visible. This will be hidden on successful password entry.
-    -->
-    <div id="riadoSign" class="fixed top-4 left-4 text-red-600 font-extrabold text-3xl z-10 p-2 rounded-lg bg-red-100 bg-opacity-70">
-        RIADÓ
-    </div>
+            <div id="blinkingRedLight1" class="blinking-light"></div>
+            <div id="blinkingRedLight2" class="blinking-light"></div>
+            <div id="blinkingRedLight3" class="blinking-light"></div>
+            <div id="blinkingRedLight4" class="blinking-light"></div>
+            <div id="blinkingRedLight5" class="blinking-light"></div>
+        </div>
 
-    <!--
-        New button for "Rendszerfrissítés" positioned in the top-right corner.
-    -->
-    <button id="systemUpdateButton"
-            class="fixed top-4 right-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-75">
-        Rendszerfrissítés
-    </button>
+        <div id="riadoSign"
+            class="position-fixed top-0 start-0 m-3 text-danger fw-bold fs-3 z-1 p-2 rounded bg-danger-subtle">
+            RIADÓ
+        </div>
 
-    <!--
-        Custom Modal for System Update Password
-    -->
-    <div id="passwordModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 p-4">
-        <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-sm w-full border border-red-300 transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
-            <!-- Error message for the modal -->
-            <p id="modalErrorMessage" class="text-lg text-red-600 font-semibold mb-4">
-                Előbb mond ki a varázsigét barátocskám!
+        <button id="systemUpdateButton" type="button" class="btn btn-success position-fixed top-0 end-0 m-3">
+            Rendszerfrissítés
+        </button>
+
+        <div class="modal fade" id="passwordModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center">
+                        <p id="modalErrorMessage" class="fs-5 text-danger fw-semibold mb-4">
+                            Előbb mond ki a varázsigét barátocskám!
+                        </p>
+                        <input type="password" id="passwordInput" maxlength="5" placeholder="Varázsige (5 karakter)"
+                            class="form-control mb-3 text-center">
+                        <button id="confirmPasswordButton" type="button" class="btn btn-primary">
+                            Megerősít
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="successScreen">
+            <p id="successMessage" class="display-4 fw-bold text-warning leading-tight text-stroke-black">
+                VESZÉLY ELHÁRÍTVA
             </p>
-
-            <!-- Password input field -->
-            <input type="password" id="passwordInput" maxlength="5" placeholder="Varázsige (5 karakter)"
-                   class="w-full p-3 mb-6 border border-gray-300 rounded-lg text-center text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-
-            <!-- Button to confirm password -->
-            <button id="confirmPasswordButton"
-                    class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-2 px-5 rounded-full shadow-md hover:shadow-lg transition duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:ring-opacity-75">
-                Megerősít
-            </button>
         </div>
     </div>
 
-    <!--
-        Success Screen container, initially hidden.
-        This will be displayed when the correct password is entered.
-        The logo is now the background of this div, and the text is positioned at the bottom.
-    -->
-    <div id="successScreen">
-        <!-- The logo image tag is removed as it's now the background of successScreen -->
-        <!-- Text indicating danger eliminated, positioned at the bottom center -->
-        <p id="successMessage" class="text-5xl font-extrabold text-amber-500 leading-tight text-stroke-black">
-            VESZÉLY ELHÁRÍTVA
-        </p>
-    </div>
-
-    <!--
-        JavaScript section.
-    -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Get a reference to the main content div, the paragraph, and the buttons.
-        const messageParagraph = document.getElementById('messageParagraph');
-        const changeTextButton = document.getElementById('changeTextButton');
+        // NO CHANGES NEEDED IN THE JAVASCRIPT
         const systemUpdateButton = document.getElementById('systemUpdateButton');
-        const riadoSign = document.getElementById('riadoSign'); // Reference to the RIADÓ sign
-
-        // Get references to all blinking red lights
-        const blinkingRedLights = [
-            document.getElementById('blinkingRedLight1'),
-            document.getElementById('blinkingRedLight2'),
-            document.getElementById('blinkingRedLight3'),
-            document.getElementById('blinkingRedLight4'),
-            document.getElementById('blinkingRedLight5')
-        ];
-
-        // Get references to the modal elements
-        const passwordModal = document.getElementById('passwordModal');
-        const modalContent = document.getElementById('modalContent');
+        const riadoSign = document.getElementById('riadoSign');
+        const blinkingRedLights = document.querySelectorAll('.blinking-light');
+        const passwordModalElement = document.getElementById('passwordModal');
+        const passwordModal = new bootstrap.Modal(passwordModalElement);
         const modalErrorMessage = document.getElementById('modalErrorMessage');
         const passwordInput = document.getElementById('passwordInput');
         const confirmPasswordButton = document.getElementById('confirmPasswordButton');
-
-        // Get references to the success screen elements
         const successScreen = document.getElementById('successScreen');
-        const successMessage = document.getElementById('successMessage'); // Only message remains
 
-        // Define the correct password
         const CORRECT_PASSWORD = "Opera";
 
-        // Define a variable to keep track of the current state or message index for the main button.
-        let clickCount = 0;
-
-        // Function to show the modal with animation
-        function showModal() {
-            passwordModal.classList.remove('hidden');
-            // Trigger reflow to ensure transition plays
-            void passwordModal.offsetWidth;
-            modalContent.classList.remove('scale-95', 'opacity-0');
-            modalContent.classList.add('scale-100', 'opacity-100');
-            passwordInput.value = ''; // Clear password input when modal opens
-            modalErrorMessage.textContent = "Előbb mond ki a varázsigét barátocskám!"; // Reset error message
-            modalErrorMessage.classList.remove('text-green-600'); // Remove potential success styling
-            modalErrorMessage.classList.add('text-red-600'); // Ensure error styling
-        }
-
-        // Function to hide the modal with animation
-        function hideModal() {
-            modalContent.classList.remove('scale-100', 'opacity-100');
-            modalContent.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                passwordModal.classList.add('hidden');
-            }, 300); // Hide fully after transition completes
-        }
-
-        // Function to show the success screen and hide other elements
         function showSuccessScreen() {
-            riadoSign.classList.add('hidden'); // Hide the RIADÓ sign
-            systemUpdateButton.classList.add('hidden'); // Hide the Rendszerfrissítés button
-            
-            // Hide all blinking red lights when success screen appears
-            blinkingRedLights.forEach(light => {
-                if (light) { // Check if the element exists
-                    light.classList.add('hidden');
-                }
-            });
-
-            successScreen.classList.add('visible'); // Show the success screen with transition
+            riadoSign.classList.add('d-none');
+            systemUpdateButton.classList.add('d-none');
+            // Hide the entire map wrapper on success
+            document.getElementById('map-wrapper').classList.add('d-none');
+            successScreen.classList.add('visible');
         }
 
-        // Function to sequentially show blinking red lights
         function activateBlinkingLightsSequentially(startIndex) {
-            const delay = 5 * 60 * 1000; // 5 minutes in milliseconds
-
+            const delay = 5 * 60 * 1000;
             for (let i = startIndex; i < blinkingRedLights.length; i++) {
                 setTimeout(() => {
-                    if (blinkingRedLights[i]) { // Check if the element exists
+                    if (blinkingRedLights[i]) {
                         blinkingRedLights[i].style.visibility = 'visible';
                     }
-                }, (i - startIndex + 1) * delay); // Calculate delay based on index
+                }, (i - startIndex + 1) * delay);
             }
         }
 
-        // Add event listener to the main button.
-        changeTextButton.addEventListener('click', () => {
-            clickCount++;
-
-            switch (clickCount) {
-                case 1:
-                    messageParagraph.textContent = "You clicked the button! Isn't that neat?";
-                    break;
-                case 2:
-                    messageParagraph.textContent = "Wow, you clicked it again! Keep going!";
-                    break;
-                case 3:
-                    messageParagraph.textContent = "Third time's the charm! This is fun!";
-                    break;
-                case 4:
-                    messageParagraph.textContent = "You're a clicking master! What will happen next?";
-                    break;
-                default:
-                    messageParagraph.textContent = `You've clicked me ${clickCount} times! This is a dynamic update.`;
-            }
-
-            changeTextButton.textContent = "Clicked!";
-            setTimeout(() => {
-                changeTextButton.textContent = "Change Text";
-            }, 1000);
-        });
-
-        // Add event listener for the "Rendszerfrissítés" button.
         systemUpdateButton.addEventListener('click', () => {
-            showModal(); // Show the password modal
+            passwordInput.value = '';
+            modalErrorMessage.textContent = "Előbb mond ki a varázsigét barátocskám!";
+            modalErrorMessage.classList.remove('text-success');
+            modalErrorMessage.classList.add('text-danger');
+            passwordModal.show();
         });
 
-        // Add event listener for the confirm password button inside the modal.
         confirmPasswordButton.addEventListener('click', () => {
             const password = passwordInput.value;
 
-            // Check if the entered password matches the CORRECT_PASSWORD
             if (password === CORRECT_PASSWORD) {
-                console.log("Password entered:", password);
-                modalErrorMessage.textContent = "Sikeres varázsige! Frissítés indítása..."; // Success message
-                modalErrorMessage.classList.remove('text-red-600');
-                modalErrorMessage.classList.add('text-green-600');
+                modalErrorMessage.textContent = "Sikeres varázsige! Frissítés indítása...";
+                modalErrorMessage.classList.remove('text-danger');
+                modalErrorMessage.classList.add('text-success');
 
-                // Hide modal and show success screen after a short delay
                 setTimeout(() => {
-                    hideModal();
-                    showSuccessScreen(); // Call the new function to show the success screen
-                }, 1000); // Hide after 1 second to show success message
+                    passwordModal.hide();
+                    showSuccessScreen();
+                }, 1000);
             } else {
-                // If password is incorrect, display an error message in the modal
-                modalErrorMessage.textContent = "Helytelen varázsige! Próbáld újra."; // Incorrect password message
-                modalErrorMessage.classList.remove('text-green-600');
-                modalErrorMessage.classList.add('text-red-600');
+                modalErrorMessage.textContent = "Helytelen varázsige! Próbáld újra.";
+                modalErrorMessage.classList.remove('text-success');
+                modalErrorMessage.classList.add('text-danger');
             }
         });
 
-        // Optional: Close modal if clicking outside it (on the overlay)
-        passwordModal.addEventListener('click', (event) => {
-            if (event.target === passwordModal) {
-                hideModal();
-            }
-        });
-
-        // Initialize the sequential activation of blinking lights when the page loads
-        // Start from the second light (index 1), as the first one is visible by default
         activateBlinkingLightsSequentially(1);
     </script>
 </body>
+
 </html>
